@@ -1,0 +1,42 @@
+name: EM Store Android APK Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          mkdir project
+          unzip -q em-app-store.zip -d project
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build EM Store APK
+        run: |
+          chmod +x project/android/gradlew
+          cd project/android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload EM Store APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EM-Store-APK
+          path: project/android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
